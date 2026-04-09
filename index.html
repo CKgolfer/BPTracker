@@ -742,23 +742,7 @@ function exportCSV(){
 
 function refreshAll(){updateLatest();updateStats();updateChart();updateHistory();}
 
-// ── Note Tooltip (desktop hover) ───────────────────────────────────────────────
-const _tt = document.getElementById('note-tooltip');
-document.addEventListener('mouseover', e => {
-  const tag = e.target.closest('.note-tag');
-  if(!tag) return;
-  _tt.textContent = tag.dataset.note;
-  _tt.style.display = 'block';
-});
-document.addEventListener('mousemove', e => {
-  if(_tt.style.display === 'none') return;
-  const x = e.clientX + 14, y = e.clientY - 10;
-  _tt.style.left = (x + _tt.offsetWidth > window.innerWidth ? x - _tt.offsetWidth - 20 : x) + 'px';
-  _tt.style.top = (y + _tt.offsetHeight > window.innerHeight ? y - _tt.offsetHeight - 10 : y) + 'px';
-});
-document.addEventListener('mouseout', e => {
-  if(e.target.closest('.note-tag')) _tt.style.display = 'none';
-});
+
 
 // ── Note Popup ─────────────────────────────────────────────────────────────────
 function openNoteModal(el){
@@ -830,6 +814,24 @@ async function saveEdit(){
 
 // ── Boot ───────────────────────────────────────────────────────────────────────
 document.addEventListener('DOMContentLoaded', async function(){
+  // ── Note Tooltip (desktop hover) ─────────────────────────────────────────────
+  const _tt = document.getElementById('note-tooltip');
+  document.addEventListener('mouseover', e => {
+    const tag = e.target.closest('.note-tag');
+    if(!tag){_tt.style.display='none';return;}
+    _tt.textContent = tag.dataset.note;
+    _tt.style.display = 'block';
+  });
+  document.addEventListener('mousemove', e => {
+    if(_tt.style.display === 'none') return;
+    const x = e.clientX + 14, y = e.clientY - 10;
+    _tt.style.left = (x + _tt.offsetWidth > window.innerWidth ? x - _tt.offsetWidth - 20 : x) + 'px';
+    _tt.style.top = (y + _tt.offsetHeight > window.innerHeight ? y - _tt.offsetHeight - 10 : y) + 'px';
+  });
+  document.addEventListener('mouseout', e => {
+    if(!e.target.closest('.note-tag')) return;
+    _tt.style.display = 'none';
+  });
   setDefaultDateTime();
   await loadUsersFromDropbox();
   renderUserPills();

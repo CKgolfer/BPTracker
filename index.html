@@ -148,7 +148,16 @@
   .btn-edit-cancel:hover{border-color:var(--high);color:var(--high)}
   .empty-state{text-align:center;padding:40px 24px;color:var(--text-dim)}
   .empty-state .icon{font-size:2rem;margin-bottom:10px;opacity:0.4}
-  .note-tag{font-size:0.7rem;color:var(--text-dim);background:var(--bg);padding:2px 7px;border-radius:4px;border:1px solid var(--border);display:inline-block;max-width:150px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .note-tag{font-size:0.7rem;color:var(--text-dim);background:var(--bg);padding:2px 7px;border-radius:4px;border:1px solid var(--border);display:inline-block;max-width:150px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;cursor:pointer;transition:border-color 0.2s}
+  .note-tag:hover{border-color:var(--accent);color:var(--accent)}
+  /* Note popup modal */
+  .note-modal-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.45);z-index:700;align-items:center;justify-content:center}
+  .note-modal-overlay.open{display:flex}
+  .note-modal-box{background:#fff;border-radius:16px;padding:26px 26px 22px;width:360px;max-width:92vw;box-shadow:0 20px 60px rgba(0,0,0,0.2)}
+  .note-modal-title{font-family:'DM Serif Display',serif;font-size:1.1rem;margin-bottom:12px;color:var(--text)}
+  .note-modal-text{font-size:0.92rem;color:var(--text);line-height:1.6;word-break:break-word;white-space:pre-wrap}
+  .note-modal-close{margin-top:20px;width:100%;background:var(--accent);color:#fff;border:none;border-radius:8px;padding:9px;font-family:'DM Sans',sans-serif;font-size:0.88rem;font-weight:600;cursor:pointer}
+  .note-modal-close:hover{background:#1d4ed8}
   .badge{display:inline-block;padding:3px 9px;border-radius:12px;font-size:0.63rem;font-weight:600;letter-spacing:0.04em;text-transform:uppercase}
   .badge-normal  {background:#d1fae5;color:#065f46}
   .badge-elevated{background:#fef3c7;color:#92400e}
@@ -376,6 +385,15 @@
     <div id="history-body">
   </div>
 
+</div>
+
+<!-- Note Popup Modal -->
+<div class="note-modal-overlay" id="note-modal">
+  <div class="note-modal-box">
+    <div class="note-modal-title">📝 Note</div>
+    <div class="note-modal-text" id="note-modal-text"></div>
+    <button class="note-modal-close" onclick="closeNoteModal()">Close</button>
+  </div>
 </div>
 
 <!-- Edit Reading Modal -->
@@ -708,7 +726,7 @@ function updateHistory(){
   document.getElementById('filter-count').textContent=activeFilter?`${data.length} of ${readings.length} shown`:'';
   if(!data.length){body.innerHTML=`<div class="empty-state"><div class="icon">♥</div><p>${activeFilter?'No readings match this filter.':'No readings yet for '+activeUser().name+'.'}</p></div>`;return;}
   let html='<table><thead><tr><th>Date &amp; Time</th><th>Systolic</th><th>Diastolic</th><th>Pulse</th><th>Meds</th><th>Notes</th><th></th></tr></thead><tbody>';
-  data.forEach(r=>{const c=classify(r.sys,r.dia);const medBg=r.med==='post'?'#d1fae5':'#fef3c7';const medClr=r.med==='post'?'#065f46':'#92400e';const medLbl=r.med==='post'?'Post':'Pre';const sysCls=classifySys(r.sys);const diaCls=classifyDia(r.dia);html+=`<tr class="fade-in"><td style="color:var(--text-dim);font-size:0.78rem">${fmtDate(r.ts)}</td><td class="td-bp ${sysCls}">${r.sys}</td><td class="td-bp ${diaCls}">${r.dia}</td><td>${r.pulse||'—'}</td><td><span style="font-size:0.72rem;font-weight:600;padding:2px 7px;border-radius:10px;background:${medBg};color:${medClr}">${medLbl}</span></td><td>${r.notes?`<span class="note-tag" title="${r.notes}">${r.notes}</span>`:'<span style="color:var(--text-light)">—</span>'}</td><td><div class="td-actions"><button class="td-edit" onclick="openEditModal(${r.id})" title="Edit">✏️</button><button class="td-del" onclick="deleteReading(${r.id})" title="Delete">🗑️</button></div></td></tr>`;});
+  data.forEach(r=>{const c=classify(r.sys,r.dia);const medBg=r.med==='post'?'#d1fae5':'#fef3c7';const medClr=r.med==='post'?'#065f46':'#92400e';const medLbl=r.med==='post'?'Post':'Pre';const sysCls=classifySys(r.sys);const diaCls=classifyDia(r.dia);html+=`<tr class="fade-in"><td style="color:var(--text-dim);font-size:0.78rem">${fmtDate(r.ts)}</td><td class="td-bp ${sysCls}">${r.sys}</td><td class="td-bp ${diaCls}">${r.dia}</td><td>${r.pulse||'—'}</td><td><span style="font-size:0.72rem;font-weight:600;padding:2px 7px;border-radius:10px;background:${medBg};color:${medClr}">${medLbl}</span></td><td>${r.notes?`<span class="note-tag" onclick="openNoteModal(this)" data-note="${r.notes.replace(/"/g,'&quot;')}">${r.notes}</span>`:'<span style="color:var(--text-light)">—</span>'}</td><td><div class="td-actions"><button class="td-edit" onclick="openEditModal(${r.id})" title="Edit">✏️</button><button class="td-del" onclick="deleteReading(${r.id})" title="Delete">🗑️</button></div></td></tr>`;});
   body.innerHTML=html+'</tbody></table>';
 }
 
@@ -721,6 +739,17 @@ function exportCSV(){
 }
 
 function refreshAll(){updateLatest();updateStats();updateChart();updateHistory();}
+
+// ── Note Popup ─────────────────────────────────────────────────────────────────
+function openNoteModal(el){
+  document.getElementById('note-modal-text').textContent=el.dataset.note;
+  document.getElementById('note-modal').classList.add('open');
+}
+function closeNoteModal(){
+  document.getElementById('note-modal').classList.remove('open');
+}
+// Close note modal on overlay click
+document.getElementById('note-modal').addEventListener('click',function(e){if(e.target===this)closeNoteModal();});
 
 // ── Edit Reading ───────────────────────────────────────────────────────────────
 let editingId = null;

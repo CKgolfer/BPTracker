@@ -148,10 +148,9 @@
   .btn-edit-cancel:hover{border-color:var(--high);color:var(--high)}
   .empty-state{text-align:center;padding:40px 24px;color:var(--text-dim)}
   .empty-state .icon{font-size:2rem;margin-bottom:10px;opacity:0.4}
-  .note-tag{font-size:0.7rem;color:var(--text-dim);background:var(--bg);padding:2px 7px;border-radius:4px;border:1px solid var(--border);display:inline-block;max-width:150px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;cursor:pointer;transition:border-color 0.2s;position:relative}
+  .note-tag{font-size:0.7rem;color:var(--text-dim);background:var(--bg);padding:2px 7px;border-radius:4px;border:1px solid var(--border);display:inline-block;max-width:150px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;cursor:pointer;transition:border-color 0.2s}
   .note-tag:hover{border-color:var(--accent);color:var(--accent)}
-  .note-tag::after{content:attr(data-note);position:absolute;bottom:calc(100% + 6px);left:0;background:#1e293b;color:#f1f5f9;font-size:0.78rem;padding:7px 11px;border-radius:8px;white-space:pre-wrap;word-break:break-word;width:220px;max-width:280px;box-shadow:0 4px 12px rgba(0,0,0,0.2);opacity:0;pointer-events:none;transition:opacity 0.18s;z-index:100;line-height:1.5}
-  @media(hover:hover){.note-tag:hover::after{opacity:1}}
+  #note-tooltip{position:fixed;background:#1e293b;color:#f1f5f9;font-size:0.78rem;padding:7px 11px;border-radius:8px;white-space:pre-wrap;word-break:break-word;max-width:260px;box-shadow:0 4px 12px rgba(0,0,0,0.25);pointer-events:none;z-index:800;line-height:1.5;display:none}
   /* Note popup modal */
   .note-modal-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.45);z-index:700;align-items:center;justify-content:center}
   .note-modal-overlay.open{display:flex}
@@ -230,6 +229,7 @@
 </head>
 <body>
 <div id="toast"></div>
+<div id="note-tooltip"></div>
 <div class="container">
 
     <header>
@@ -741,6 +741,24 @@ function exportCSV(){
 }
 
 function refreshAll(){updateLatest();updateStats();updateChart();updateHistory();}
+
+// ── Note Tooltip (desktop hover) ───────────────────────────────────────────────
+const _tt = document.getElementById('note-tooltip');
+document.addEventListener('mouseover', e => {
+  const tag = e.target.closest('.note-tag');
+  if(!tag) return;
+  _tt.textContent = tag.dataset.note;
+  _tt.style.display = 'block';
+});
+document.addEventListener('mousemove', e => {
+  if(_tt.style.display === 'none') return;
+  const x = e.clientX + 14, y = e.clientY - 10;
+  _tt.style.left = (x + _tt.offsetWidth > window.innerWidth ? x - _tt.offsetWidth - 20 : x) + 'px';
+  _tt.style.top = (y + _tt.offsetHeight > window.innerHeight ? y - _tt.offsetHeight - 10 : y) + 'px';
+});
+document.addEventListener('mouseout', e => {
+  if(e.target.closest('.note-tag')) _tt.style.display = 'none';
+});
 
 // ── Note Popup ─────────────────────────────────────────────────────────────────
 function openNoteModal(el){

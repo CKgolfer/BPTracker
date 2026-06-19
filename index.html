@@ -7,7 +7,8 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
 <meta name="apple-mobile-web-app-title" content="BP Tracker">
 <meta name="theme-color" content="#ffffff">
-<title>BP Tracker</title>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🩺</text></svg>">
+    <title>BP Tracker</title>
 <link rel="preconnect" href="https://fonts.googleapis.com/">
 <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600&family=DM+Serif+Display&display=swap" rel="stylesheet">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
@@ -258,9 +259,9 @@
     <div class="form-grid">
       <div class="field"><label>Date</label><input type="date" id="inp-date"></div>
       <div class="field"><label>Time</label><input type="time" id="inp-time"></div>
-      <div class="field"><label>Systolic</label><input type="number" id="inp-sys" placeholder="120" min="60" max="250" value="120"></div>
-      <div class="field"><label>Diastolic</label><input type="number" id="inp-dia" placeholder="80" min="40" max="150" value="75"></div>
-      <div class="field"><label>Pulse</label><input type="number" id="inp-pulse" placeholder="72" min="30" max="200" value="55"></div>
+      <div class="field"><label>Systolic</label><input type="number" id="inp-sys" placeholder="120" min="60" max="250"></div>
+      <div class="field"><label>Diastolic</label><input type="number" id="inp-dia" placeholder="80" min="40" max="150"></div>
+      <div class="field"><label>Pulse</label><input type="number" id="inp-pulse" placeholder="72" min="30" max="200"></div>
       <div class="field"><label>Notes</label><input type="text" id="inp-notes" placeholder="optional"></div>
       <div class="field"><label>Meds</label><div class="med-toggle"><button id="med-pre" onclick="setMed('pre')" class="active-pre">Pre</button><button id="med-post" onclick="setMed('post')">Post</button></div></div>
       <div class="btn-wrap" style="display:flex;align-items:flex-end"><button class="btn-add" onclick="addReading()">+ Add</button></div>
@@ -543,10 +544,7 @@ async function addReading(){
   readings.push({id:Date.now(),ts,sys,dia,pulse,notes,med});
   readings.sort((a,b)=>new Date(b.ts)-new Date(a.ts));
   refreshAll();
-  ['inp-notes'].forEach(id=>document.getElementById(id).value='');
-  document.getElementById('inp-sys').value='120';
-  document.getElementById('inp-dia').value='75';
-  document.getElementById('inp-pulse').value='55';
+  ['inp-sys','inp-dia','inp-pulse','inp-notes'].forEach(id=>document.getElementById(id).value='');
   setDefaultDateTime();
   showToast('Reading saved for '+activeUser().name,'success');
   await dbxSave();

@@ -190,10 +190,94 @@
   .med-toggle button{flex:1;border:none;background:transparent;font-family:'DM Sans',sans-serif;font-size:0.78rem;font-weight:600;cursor:pointer;transition:all 0.18s;color:var(--text-dim);padding:0 8px;white-space:nowrap}
   .med-toggle button.active-pre{background:#fef3c7;color:#92400e}
   .med-toggle button.active-post{background:#d1fae5;color:#065f46}
+
+  /* Colour-coded BP cells */
+  .bp-normal   { background:#d1fae5; color:#065f46; border-radius:6px; padding:2px 6px; }
+  .bp-elevated { background:#fef3c7; color:#92400e; border-radius:6px; padding:2px 6px; }
+  .bp-high     { background:#fee2e2; color:#991b1b; border-radius:6px; padding:2px 6px; }
+  .bp-crisis   { background:#ede9fe; color:#4c1d95; border-radius:6px; padding:2px 6px; }
+
+  /* Action icons column */
+  .td-actions{display:flex;gap:6px;align-items:center}
+  .td-edit{background:none;border:none;cursor:pointer;font-size:1rem;padding:2px 5px;border-radius:4px;transition:background 0.2s}
+  .td-edit:hover{background:#dbeafe}
+  .td-del{background:none;border:none;cursor:pointer;font-size:1rem;padding:2px 5px;border-radius:4px;transition:background 0.2s}
+  .td-del:hover{background:#fee2e2}
+
+  /* Note tooltip */
+  #note-tooltip{position:fixed;background:#1e293b;color:#f1f5f9;padding:8px 12px;border-radius:8px;font-size:0.78rem;max-width:260px;pointer-events:none;z-index:9999;opacity:0;transition:opacity 0.15s;line-height:1.4}
+  #note-tooltip.visible{opacity:1}
+
+  /* Note popup modal */
+  .note-modal-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.45);z-index:600;align-items:center;justify-content:center}
+  .note-modal-overlay.open{display:flex}
+  .note-modal-box{background:#fff;border-radius:14px;padding:24px 24px 20px;width:320px;max-width:90vw;box-shadow:0 20px 60px rgba(0,0,0,0.2)}
+  .note-modal-title{font-family:'DM Serif Display',serif;font-size:1.1rem;margin-bottom:10px}
+  .note-modal-text{font-size:0.88rem;color:var(--text);line-height:1.55;word-break:break-word;margin-bottom:18px}
+  .note-modal-close{background:var(--accent);color:#fff;border:none;border-radius:8px;padding:8px 20px;font-family:'DM Sans',sans-serif;font-size:0.85rem;font-weight:600;cursor:pointer}
+  .note-modal-close:hover{background:#1d4ed8}
+
+  /* Edit modal */
+  .edit-modal-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.45);z-index:700;align-items:center;justify-content:center}
+  .edit-modal-overlay.open{display:flex}
+  .edit-modal-box{background:#fff;border-radius:16px;padding:26px 26px 22px;width:380px;max-width:94vw;box-shadow:0 20px 60px rgba(0,0,0,0.2)}
+  .edit-modal-title{font-family:'DM Serif Display',serif;font-size:1.2rem;margin-bottom:16px}
+  .edit-form-grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;margin-bottom:14px}
+  .edit-field{display:flex;flex-direction:column;gap:4px}
+  .edit-field.full{grid-column:span 3}
+  .edit-field label{font-size:0.67rem;color:var(--text-dim);text-transform:uppercase;letter-spacing:0.06em;font-weight:500}
+  .edit-field input{background:var(--bg);border:1px solid var(--border);border-radius:8px;padding:7px 10px;font-family:'DM Sans',sans-serif;font-size:0.875rem;color:var(--text)}
+  .edit-field input:focus{outline:none;border-color:var(--accent);background:#fff}
+  .edit-med-toggle{display:flex;border:1px solid var(--border);border-radius:8px;overflow:hidden;background:var(--bg);height:34px}
+  .edit-med-toggle button{flex:1;border:none;background:transparent;font-family:'DM Sans',sans-serif;font-size:0.78rem;font-weight:600;cursor:pointer;transition:all 0.18s;color:var(--text-dim);padding:0 6px}
+  .edit-med-toggle button.active-pre{background:#fef3c7;color:#92400e}
+  .edit-med-toggle button.active-post{background:#d1fae5;color:#065f46}
+  .edit-modal-actions{display:flex;gap:10px;margin-top:6px}
+  .btn-edit-cancel{flex:1;background:var(--bg);border:1px solid var(--border);color:var(--text-dim);border-radius:8px;padding:9px;font-family:'DM Sans',sans-serif;font-size:0.88rem;cursor:pointer}
+  .btn-edit-cancel:hover{border-color:var(--high);color:var(--high)}
+  .btn-edit-save{flex:1;background:var(--accent);color:#fff;border:none;border-radius:8px;padding:9px;font-family:'DM Sans',sans-serif;font-size:0.88rem;font-weight:600;cursor:pointer}
+  .btn-edit-save:hover{background:#1d4ed8}
 </style>
 </head>
 <body>
 <div id="toast"></div>
+<div id="note-tooltip"></div>
+
+<!-- Note Popup Modal -->
+<div class="note-modal-overlay" id="note-modal">
+  <div class="note-modal-box">
+    <div class="note-modal-title">📝 Note</div>
+    <div class="note-modal-text" id="note-modal-text"></div>
+    <button class="note-modal-close" onclick="closeNoteModal()">Close</button>
+  </div>
+</div>
+
+<!-- Edit Reading Modal -->
+<div class="edit-modal-overlay" id="edit-modal">
+  <div class="edit-modal-box">
+    <div class="edit-modal-title">Edit Reading</div>
+    <div class="edit-form-grid">
+      <div class="edit-field"><label>Date</label><input type="date" id="edit-date"></div>
+      <div class="edit-field"><label>Time</label><input type="time" id="edit-time"></div>
+      <div class="edit-field"><label>Systolic</label><input type="number" id="edit-sys" min="60" max="250"></div>
+      <div class="edit-field"><label>Diastolic</label><input type="number" id="edit-dia" min="40" max="150"></div>
+      <div class="edit-field"><label>Pulse</label><input type="number" id="edit-pulse" min="30" max="200"></div>
+      <div class="edit-field"><label>Meds</label>
+        <div class="edit-med-toggle">
+          <button id="edit-med-pre" onclick="setEditMed('pre')">Pre</button>
+          <button id="edit-med-post" onclick="setEditMed('post')">Post</button>
+        </div>
+      </div>
+      <div class="edit-field full"><label>Notes</label><input type="text" id="edit-notes" placeholder="optional"></div>
+    </div>
+    <div class="edit-modal-actions">
+      <button class="btn-edit-cancel" onclick="closeEditModal()">Cancel</button>
+      <button class="btn-edit-save" onclick="saveEdit()">Save Changes</button>
+    </div>
+  </div>
+</div>
+
+
 <div class="container">
 
     <header>
@@ -259,9 +343,9 @@
     <div class="form-grid">
       <div class="field"><label>Date</label><input type="date" id="inp-date"></div>
       <div class="field"><label>Time</label><input type="time" id="inp-time"></div>
-      <div class="field"><label>Systolic</label><input type="number" id="inp-sys" placeholder="120" min="60" max="250"></div>
-      <div class="field"><label>Diastolic</label><input type="number" id="inp-dia" placeholder="80" min="40" max="150"></div>
-      <div class="field"><label>Pulse</label><input type="number" id="inp-pulse" placeholder="72" min="30" max="200"></div>
+      <div class="field"><label>Systolic</label><input type="number" id="inp-sys" value="120" min="60" max="250"></div>
+      <div class="field"><label>Diastolic</label><input type="number" id="inp-dia" value="80" min="40" max="150"></div>
+      <div class="field"><label>Pulse</label><input type="number" id="inp-pulse" value="55" min="30" max="200"></div>
       <div class="field"><label>Notes</label><input type="text" id="inp-notes" placeholder="optional"></div>
       <div class="field"><label>Meds</label><div class="med-toggle"><button id="med-pre" onclick="setMed('pre')" class="active-pre">Pre</button><button id="med-post" onclick="setMed('post')">Post</button></div></div>
       <div class="btn-wrap" style="display:flex;align-items:flex-end"><button class="btn-add" onclick="addReading()">+ Add</button></div>
@@ -544,7 +628,10 @@ async function addReading(){
   readings.push({id:Date.now(),ts,sys,dia,pulse,notes,med});
   readings.sort((a,b)=>new Date(b.ts)-new Date(a.ts));
   refreshAll();
-  ['inp-sys','inp-dia','inp-pulse','inp-notes'].forEach(id=>document.getElementById(id).value='');
+  document.getElementById('inp-sys').value='120';
+  document.getElementById('inp-dia').value='80';
+  document.getElementById('inp-pulse').value='55';
+  document.getElementById('inp-notes').value='';
   setDefaultDateTime();
   showToast('Reading saved for '+activeUser().name,'success');
   await dbxSave();
@@ -646,8 +733,14 @@ function updateHistory(){
   const body=document.getElementById('history-body'),data=getFilteredSorted();
   document.getElementById('filter-count').textContent=activeFilter?`${data.length} of ${readings.length} shown`:'';
   if(!data.length){body.innerHTML=`<div class="empty-state"><div class="icon">♥</div><p>${activeFilter?'No readings match this filter.':'No readings yet for '+activeUser().name+'.'}</p></div>`;return;}
-  let html='<table><thead><tr><th>Date &amp; Time</th><th>Systolic</th><th>Diastolic</th><th>Pulse</th><th>Status</th><th>Meds</th><th>Notes</th><th></th></tr></thead><tbody>';
-  data.forEach(r=>{const c=classify(r.sys,r.dia);const medBg=r.med==='post'?'#d1fae5':'#fef3c7';const medClr=r.med==='post'?'#065f46':'#92400e';const medLbl=r.med==='post'?'Post':'Pre';html+=`<tr class="fade-in"><td style="color:var(--text-dim);font-size:0.78rem">${fmtDate(r.ts)}</td><td class="td-bp">${r.sys}</td><td class="td-bp">${r.dia}</td><td>${r.pulse||'—'}</td><td><span class="badge ${c.badge}">${c.label}</span></td><td><span style="font-size:0.72rem;font-weight:600;padding:2px 7px;border-radius:10px;background:${medBg};color:${medClr}">${medLbl}</span></td><td>${r.notes?`<span class="note-tag" title="${r.notes}">${r.notes}</span>`:'<span style="color:var(--text-light)">—</span>'}</td><td><button class="td-del" onclick="deleteReading(${r.id})" title="Delete">✕</button></td></tr>`;});
+  let html='<table><thead><tr><th>Date &amp; Time</th><th>Systolic</th><th>Diastolic</th><th>Pulse</th><th>Meds</th><th>Notes</th><th></th></tr></thead><tbody>';
+  data.forEach(r=>{
+    const sysCls=classify(r.sys,r.dia).badge.replace('badge-','bp-');
+    const diaCls=classify(r.sys,r.dia).badge.replace('badge-','bp-');
+    const medBg=r.med==='post'?'#d1fae5':'#fef3c7';const medClr=r.med==='post'?'#065f46':'#92400e';const medLbl=r.med==='post'?'Post':'Pre';
+    const noteHtml=r.notes?`<span class="note-tag" onmouseenter="showTooltip(event,'${r.notes.replace(/'/g,"&#39;")}')" onmouseleave="hideTooltip()" onclick="openNoteModal('${r.notes.replace(/'/g,"&#39;")}')">${r.notes}</span>`:'<span style="color:var(--text-light)">—</span>';
+    html+=`<tr class="fade-in"><td style="color:var(--text-dim);font-size:0.78rem">${fmtDate(r.ts)}</td><td class="td-bp"><span class="${sysCls}">${r.sys}</span></td><td class="td-bp"><span class="${diaCls}">${r.dia}</span></td><td>${r.pulse||'—'}</td><td><span style="font-size:0.72rem;font-weight:600;padding:2px 7px;border-radius:10px;background:${medBg};color:${medClr}">${medLbl}</span></td><td>${noteHtml}</td><td><div class="td-actions"><button class="td-edit" onclick="openEditModal(${r.id})" title="Edit">✏️</button><button class="td-del" onclick="deleteReading(${r.id})" title="Delete">🗑️</button></div></td></tr>`;
+  });
   body.innerHTML=html+'</tbody></table>';
 }
 
@@ -657,6 +750,69 @@ function exportCSV(){
   let csv='Date,Time,Systolic,Diastolic,Pulse,Status,Notes\n';
   data.forEach(r=>{const d=new Date(r.ts),c=classify(r.sys,r.dia);csv+=`"${d.toLocaleDateString('en-IN')}","${d.toLocaleTimeString('en-IN')}",${r.sys},${r.dia},${r.pulse||''},${c.label},${r.med==="post"?"Post-Med":"Pre-Med"},"${r.notes||''}"\n`;});
   const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([csv],{type:'text/csv'}));a.download=`bp_readings_${u.name.replace(/\s+/g,'_')}.csv`;a.click();
+}
+
+
+// ── Note Modal & Tooltip ────────────────────────────────────────────────────
+function openNoteModal(text){
+  document.getElementById('note-modal-text').textContent=text;
+  document.getElementById('note-modal').classList.add('open');
+}
+function closeNoteModal(){document.getElementById('note-modal').classList.remove('open');}
+document.addEventListener('DOMContentLoaded',function(){
+  document.getElementById('note-modal').addEventListener('click',function(e){if(e.target===this)closeNoteModal();});
+  document.getElementById('edit-modal').addEventListener('click',function(e){if(e.target===this)closeEditModal();});
+  const tip=document.getElementById('note-tooltip');
+  document.addEventListener('mousemove',function(e){
+    if(tip.classList.contains('visible')){
+      tip.style.left=(e.clientX+14)+'px';
+      tip.style.top=(e.clientY+14)+'px';
+    }
+  });
+});
+function showTooltip(e,text){
+  const tip=document.getElementById('note-tooltip');
+  tip.textContent=text;
+  tip.style.left=(e.clientX+14)+'px';
+  tip.style.top=(e.clientY+14)+'px';
+  tip.classList.add('visible');
+}
+function hideTooltip(){document.getElementById('note-tooltip').classList.remove('visible');}
+
+// ── Edit Reading ─────────────────────────────────────────────────────────────
+let editingId=null,editMedState='pre';
+function openEditModal(id){
+  const r=readings.find(x=>x.id===id);if(!r)return;
+  editingId=id;
+  const d=new Date(r.ts);
+  const yyyy=d.getFullYear(),mm=String(d.getMonth()+1).padStart(2,'0'),dd=String(d.getDate()).padStart(2,'0');
+  document.getElementById('edit-date').value=`${yyyy}-${mm}-${dd}`;
+  document.getElementById('edit-time').value=d.toTimeString().slice(0,5);
+  document.getElementById('edit-sys').value=r.sys;
+  document.getElementById('edit-dia').value=r.dia;
+  document.getElementById('edit-pulse').value=r.pulse||'';
+  document.getElementById('edit-notes').value=r.notes||'';
+  setEditMed(r.med||'pre');
+  document.getElementById('edit-modal').classList.add('open');
+}
+function closeEditModal(){document.getElementById('edit-modal').classList.remove('open');editingId=null;}
+function setEditMed(val){
+  editMedState=val;
+  document.getElementById('edit-med-pre').className=val==='pre'?'active-pre':'';
+  document.getElementById('edit-med-post').className=val==='post'?'active-post':'';
+}
+async function saveEdit(){
+  if(!editingId)return;
+  const dateVal=document.getElementById('edit-date').value,timeVal=document.getElementById('edit-time').value;
+  const sys=parseInt(document.getElementById('edit-sys').value),dia=parseInt(document.getElementById('edit-dia').value);
+  const pulse=parseInt(document.getElementById('edit-pulse').value)||null,notes=document.getElementById('edit-notes').value.trim();
+  if(!sys||!dia||sys<60||sys>250||dia<40||dia>150){alert('Please enter valid systolic (60-250) and diastolic (40-150) values.');return;}
+  const ts=new Date(dateVal+'T'+timeVal).toISOString();
+  const idx=readings.findIndex(x=>x.id===editingId);
+  if(idx>=0)readings[idx]={...readings[idx],ts,sys,dia,pulse,notes,med:editMedState};
+  readings.sort((a,b)=>new Date(b.ts)-new Date(a.ts));
+  closeEditModal();refreshAll();showToast('Reading updated','success');
+  await dbxSave();
 }
 
 function refreshAll(){updateLatest();updateStats();updateChart();updateHistory();}

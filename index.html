@@ -524,7 +524,14 @@ async function dbxSave(){
   }catch(e){setSyncStatus('error','Save failed — kept locally');showToast('Dropbox save failed','warn');}
   finally{isSyncing=false;}
 }
-async function syncNow(){await loadUsersFromDropbox();renderUserPills();updateHeaderSubtitle();await dbxLoad();showToast('Synced with Dropbox','info');}
+async function syncNow(){
+  await getAccessToken();
+  await loadUsersFromDropbox();
+  renderUserPills();
+  updateHeaderSubtitle();
+  await dbxLoad();
+  showToast('Synced with Dropbox','info');
+}
 
 function classify(sys,dia){
   if(sys>=180||dia>=120)return{label:'Crisis',cls:'status-crisis',badge:'badge-crisis'};
@@ -664,6 +671,7 @@ function refreshAll(){updateLatest();updateStats();updateChart();updateHistory()
 // ── Boot ───────────────────────────────────────────────────────────────────────
 document.addEventListener('DOMContentLoaded', async function(){
   setDefaultDateTime();
+  await getAccessToken();
   await loadUsersFromDropbox();
   renderUserPills();
   updateHeaderSubtitle();
